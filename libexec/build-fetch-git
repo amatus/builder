@@ -6,10 +6,12 @@ build_fetch_git()
 	build_fetch_git_uri="${build_fetch_git_uri#git://}"
 	build_fetch_git_uri="${build_fetch_git_uri%%\?*}"
 	build_fetch_git_tag=
+	build_fetch_git_commit=
 	build_fetch_git_var=
 	for arg in $(build-url --arg "${1}"); do
 		case "${arg}" in
 		(archive=*) build_fetch_git_var="${arg##*=}";;
+		(commit=*) build_fetch_git_commit="${arg##*=}";;
 		(*)		 build_fetch_git_tag="${arg}";;
 		esac
 	done
@@ -60,6 +62,18 @@ build_fetch_git()
 			fi
 			;;
 		esac
+	elif [ ! -z "${build_fetch_git_commit}" ]; then
+			if ! git clone "${build_fetch_git_uri}" "${build_fetch_git_dir}"; then
+				die "failed to clone git source at '${build_fetch_git_uri}'"
+			fi
+
+			if ! cd "${build_fetch_git_dir}"; then
+				die "failed to change working directory to '${build_fetch_git_dir}'"
+			fi
+
+			if ! git checkout "${build_fetch_git_commit}"; then
+				die "failed to checkout git commit '${build_fetch_git_commit}'"
+			fi
 	else
 		if ! git clone --depth 1 "${build_fetch_git_uri}" "${build_fetch_git_dir}"; then
 			die "failed to clone git source at '${build_fetch_git_uri}'"
