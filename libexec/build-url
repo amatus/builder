@@ -43,6 +43,20 @@ build_url_arg()
 
 build_url_archive()
 {
+	# Use [url]?archive=foo to override the basename detection
+	build_url_name_var=
+	for arg in $(build_url_arg "${1}"); do
+		case "${arg}" in
+		(archive=*) build_url_name_var="${arg##*=}";;
+		esac
+	done
+
+	if [ -n "${build_url_name_var}" ]; then
+		printf '%s' "${build_url_name_var}"
+		unset build_url_name_var
+		return
+	fi
+
 	build_url_name_var="$(build_url_base "${1}")"
 	build_url_name_var="${build_url_name_var##*/}"
 	build_url_name_var="${build_url_name_var%%\?*}"
@@ -67,21 +81,7 @@ build_url_archive()
 		return
 	fi
 
-	# The filename to archive has to be supplied on the SOURCES_URI, else
-	# we can't do anything about packages which share common sources.
-	build_url_name_var=
-	for arg in $(build_url_arg "${1}"); do
-		case "${arg}" in
-		(archive=*) build_url_name_var="${arg##*=}";;
-		esac
-	done
-
-	if [ -z "${build_url_name_var}" ]; then
-		die "do not know how to store source from '${1}'"
-	fi
-
-	printf '%s' "${build_url_name_var}"
-	unset build_url_name_var
+	die "do not know how to store source from '${1}'"
 }
 
 if test "${BUILDER_CALL_STACK}" = '__main__'; then
